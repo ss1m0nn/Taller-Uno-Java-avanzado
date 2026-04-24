@@ -1,6 +1,8 @@
 package com.taller.ecommerce.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PostLoad;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,7 +28,7 @@ public class Producto {
     private Integer stock;
 
     @Version
-    private Long version;
+    private Long version = 0L;
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id")

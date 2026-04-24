@@ -24,4 +24,10 @@ public class Orden {
 
     @Column(nullable = false)
     private LocalDateTime fecha;
+
+    @Column(nullable = false)
+    private String estado;
+
+    @Column(nullable = false)
+    private Double total;
 }
