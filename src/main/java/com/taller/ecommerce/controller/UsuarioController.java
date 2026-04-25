@@ -1,5 +1,8 @@
 package com.taller.ecommerce.controller;
 
+import com.taller.ecommerce.dto.AuthResponseDTO;
+import com.taller.ecommerce.dto.LoginDTO;
+import com.taller.ecommerce.dto.UsuarioRegistroDTO;
 import com.taller.ecommerce.dto.UsuarioRequestDTO;
 import com.taller.ecommerce.model.Usuario;
 import com.taller.ecommerce.service.UsuarioService;
@@ -17,15 +20,15 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public Usuario registrar(@RequestBody UsuarioRequestDTO request) {
+        return usuarioService.registrar(new UsuarioRegistroDTO(request.nombre(), request.correo(), request.contraseña()));
+    }
 
-        return usuarioService.registrar(
-                request.nombre(),
-                request.correo(),
-                request.contraseña(),
-                request.rol()
-        );
+    @PostMapping("/login")
+    public AuthResponseDTO login(@RequestBody LoginDTO dto) {
+        String token = usuarioService.login(dto);
+        return new AuthResponseDTO(token);
     }
 
 
