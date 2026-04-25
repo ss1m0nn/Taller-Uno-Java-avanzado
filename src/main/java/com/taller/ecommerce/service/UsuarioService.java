@@ -18,13 +18,15 @@ public class UsuarioService {
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuditoriaService auditoriaService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder,
-                          JwtService jwtService) {
+                          JwtService jwtService, AuditoriaService auditoriaService) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.auditoriaService = auditoriaService;
     }
 
     @Transactional
@@ -47,15 +49,18 @@ public class UsuarioService {
     public String login(LoginDTO dto) {
 
         Usuario usuario = usuarioRepository.findByCorreo(dto.correo())
-                .orElseThrow(() -> new CredencialesInvalidasException("Correo o contraseña incorrecta"));
+                .orElseThrow(() -> {
+                    auditoriaService.registrar("LOGIN_FAIL", "USUARIO", null, dto.correo(), "Credenciales inválidas");
+                    return new CredencialesInvalidasException("Correo o contraseña incorrecta");
+                });
 
         if (!passwordEncoder.matches(dto.contraseña(), usuario.getContraseña())) {
+            auditoriaService.registrar("LOGIN_FAIL", "CORREO: " + dto.correo(), null, dto.correo(), "Correo o contraseña incorrecta");
             throw new CredencialesInvalidasException("Correo o contraseña incorrecta");
         }
 
-        return jwtService.generarToken(
-                usuario.getCorreo(),
-                usuario.getRol().getNombre()
-        );
+        auditoriaService.registrar("LOGIN_OK", "USUARIO: " + usuario.getNombre(), usuario.getId(), usuario.getCorreo(), "Login exitoso");
+
+        return jwtService.generarToken(usuario.getCorreo(), usuario.getRol().getNombre());
     }
 }

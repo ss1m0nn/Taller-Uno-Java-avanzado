@@ -3,6 +3,10 @@ package com.taller.ecommerce.repository;
 import com.taller.ecommerce.model.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProductoRepository extends JpaRepository<Producto, Long> {
+import java.util.List;
+import java.util.Optional;
 
+public interface ProductoRepository extends JpaRepository<Producto, Long> {
+    List<Producto> findAllByActivoTrue();
+    Optional<Producto> findByIdAndActivoTrue(Long id);
 }

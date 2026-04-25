@@ -1,7 +1,9 @@
 package com.taller.ecommerce.service;
 
 import com.taller.ecommerce.dto.ItemOrdenRequestDTO;
+import com.taller.ecommerce.dto.ItemOrdenResponseDTO;
 import com.taller.ecommerce.dto.OrdenRequestDTO;
+import com.taller.ecommerce.dto.OrdenResponseDTO;
 import com.taller.ecommerce.exception.StockInsuficienteException;
 import com.taller.ecommerce.model.ItemOrden;
 import com.taller.ecommerce.model.Orden;
@@ -24,15 +26,18 @@ public class OrdenService {
     private final ProductoRepository productoRepository;
     private final OrdenRepository ordenRepository;
     private final ItemOrdenRepository itemOrdenRepository;
+    private final AuditoriaService auditoriaService;
 
     public OrdenService(UsuarioRepository usuarioRepository,
                         ProductoRepository productoRepository,
                         OrdenRepository ordenRepository,
-                        ItemOrdenRepository itemOrdenRepository) {
+                        ItemOrdenRepository itemOrdenRepository,
+                        AuditoriaService auditoriaService) {
         this.usuarioRepository = usuarioRepository;
         this.productoRepository = productoRepository;
         this.ordenRepository = ordenRepository;
         this.itemOrdenRepository = itemOrdenRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     @Transactional
@@ -73,6 +78,35 @@ public class OrdenService {
         }
         orden.setTotal(total);
         ordenRepository.save(orden);
+        auditoriaService.registrar(
+                "CREAR_ORDEN",
+                "ORDEN",
+                orden.getId(),
+                usuario.getCorreo(),
+                "Orden creada correctamente"
+        );
         itemOrdenRepository.saveAll(items);
+    }
+
+    public List<OrdenResponseDTO> historialPorUsuario(Long usuarioId) {
+        usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return ordenRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(orden -> {
+                    List<ItemOrdenResponseDTO> items = itemOrdenRepository.findByOrdenId(orden.getId())
+                            .stream()
+                            .map(item -> new ItemOrdenResponseDTO(
+                                    item.getProducto().getId(),
+                                    item.getProducto().getNombre(),
+                                    item.getCantidad(),
+                                    item.getPrecioUnitario(),
+                                    item.getCantidad() * item.getPrecioUnitario()
+                            ))
+                            .toList();
+                    return new OrdenResponseDTO(orden.getId(), orden.getEstado(), orden.getFecha(), orden.getTotal(), items);
+                })
+                .toList();
     }
 }

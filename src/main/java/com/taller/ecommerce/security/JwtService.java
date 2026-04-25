@@ -1,6 +1,5 @@
 package com.taller.ecommerce.security;
 
-import com.taller.ecommerce.model.Rol;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
@@ -27,9 +26,18 @@ public class JwtService {
         return Jwts.parser()
                 .setSigningKey(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject();
+    }
+
+    public String extraerRol(String token) {
+        return Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("rol", String.class);
     }
 
     public boolean validarToken(String token) {

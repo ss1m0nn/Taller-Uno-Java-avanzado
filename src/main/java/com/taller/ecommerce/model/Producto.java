@@ -1,8 +1,6 @@
 package com.taller.ecommerce.model;
 
 import jakarta.persistence.*;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PostLoad;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,4 +31,7 @@ public class Producto {
     @ManyToOne
     @JoinColumn(name = "proveedor_id")
     private Proveedor proveedor;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
 }
